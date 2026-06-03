@@ -12,80 +12,126 @@ Mục tiêu không phải chấm "UI đẹp hay xấu". Mục tiêu là dùng s�
 |---|---|---|
 | MoMo — Moni | Trợ thủ tài chính, phân tích chi tiêu, chatbot | App MoMo |
 | Vietnam Airlines — NEO | Chatbot hỗ trợ vé, hành lý, khiếu nại | Website/Zalo VNA |
-| V-App — V-AI | Trợ lý voice/text, gợi ý theo ngữ cảnh | App V-App |
+| **V-App — V-AI** ✅ | Trợ lý voice/text, gợi ý theo ngữ cảnh | App V-App |
 | App theo track nhóm | App thật nhóm đang chọn cho hackathon | Cần screenshot/link |
+
+**App đã chọn:** V-App — V-AI
+
+---
 
 ## 2. Dùng thử: promise vs reality
 
-Ghi nhanh:
+**Product hứa gì?**  
+V-AI là trợ lý thông minh hỗ trợ người dùng trong ngữ cảnh dịch vụ của V-App — gợi ý, trả lời câu hỏi, hỗ trợ tác vụ.
 
-- Product hứa gì?
-- User nào được hứa sẽ được giúp?
-- Bạn kỳ vọng AI làm được task nào?
-- Khi dùng thật, điểm gãy xuất hiện ở đâu?
+**User nào được hứa sẽ được giúp?**  
+Người dùng V-App muốn được hỗ trợ nhanh bằng text/voice thay vì tự tìm thủ công.
 
-Evidence cần có:
+**Kỳ vọng AI làm được task nào?**  
+Nhận diện câu hỏi ngoài scope, từ chối hoặc hỏi lại thay vì trả lời bừa.
 
-- screenshot,
-- quote từ app/web/review,
-- prompt/input đã thử,
-- hành vi quan sát được.
+**Điểm gãy xuất hiện ở đâu?**  
+Khi hỏi một câu ngoài chuyên môn ("Làm sao để giàu như bác Phạm Nhật Vượng?"), AI không nhận ra intent mơ hồ / ngoài scope — thay vào đó trả lời thông tin về bác Vượng như một bài báo, không hỏi lại, không từ chối, không chuyển hướng.
+
+**Evidence:**
+- Input đã thử: `"Làm sao để giàu như bác Phạm Nhật Vượng?"`
+- Hành vi quan sát được: AI trả về thông tin tiểu sử / tài sản của Phạm Nhật Vượng, không nhận ra đây là câu hỏi ngoài scope của trợ lý dịch vụ.
+- Expected: AI hỏi lại ("Bạn muốn hỏi về tài chính cá nhân hay chỉ tìm hiểu về ông ấy?") hoặc tuyên bố rõ ("Câu hỏi này ngoài phạm vi tôi hỗ trợ được").
+
+---
 
 ## 3. Vẽ 4 paths
 
-| Path | Câu hỏi cần trả lời |
-|---|---|
-| Happy | Khi AI đúng và tự tin, user thấy gì? |
-| Low-confidence | Khi AI không chắc, hệ thống có hỏi lại, show options hoặc chuyển người không? |
-| Failure | Khi AI sai, user biết bằng cách nào và sửa thế nào? |
-| Correction | Khi user sửa, correction có được lưu/log/học lại không hay biến mất? |
+| Path | Câu hỏi cần trả lời | Quan sát trên V-AI |
+|---|---|---|
+| Happy | Khi AI đúng và tự tin, user thấy gì? | Với câu hỏi trong scope (dịch vụ V-App), AI trả lời đúng, đủ ý. |
+| Low-confidence | Khi AI không chắc, hệ thống có hỏi lại, show options hoặc chuyển người không? | **Không có.** Câu hỏi ngoài scope được xử lý như câu hỏi thông thường — AI tự tin trả lời dù nội dung không liên quan. |
+| Failure | Khi AI sai, user biết bằng cách nào và sửa thế nào? | **Không có cơ chế báo lỗi.** User không biết AI đang trả lời sai hướng trừ khi tự nhận ra. Không có nút "Câu trả lời này có hữu ích không?". |
+| Correction | Khi user sửa, correction có được lưu/log/học lại không hay biến mất? | **Không quan sát được cơ chế correction.** User không có cách gắn cờ câu trả lời lệch scope. |
+
+---
 
 ## 4. Viết finding thành quyết định
 
-Không viết:
-
 ```text
-Bot ngu, trả lời sai.
+Khi user hỏi câu ngoài scope chuyên môn ("Làm sao để giàu như bác Phạm Nhật Vượng?"),
+AI nhận diện keyword ("Phạm Nhật Vượng") thay vì nhận ra intent mơ hồ hoặc ngoài phạm vi,
+hậu quả là user nhận được thông tin về tiểu sử doanh nhân — không có giá trị trong ngữ cảnh dịch vụ V-App,
+đồng thời AI trả lời với tone tự tin, không có disclaimer, khiến user không biết câu trả lời này có đáng tin không.
+Lỗi thuộc layer Intent + UX Recovery.
+Nên sửa bằng low-confidence path:
+  - AI detect câu hỏi ngoài scope → hiển thị: "Câu này ngoài phạm vi tôi hỗ trợ. Bạn muốn hỏi về dịch vụ nào của V-App?"
+  - Hoặc: hỏi lại intent trước khi trả lời ("Bạn muốn tìm hiểu về đầu tư, hay chỉ đang tò mò về ông ấy?")
+  - Fallback cuối: từ chối rõ ràng thay vì trả lời lạc đề.
 ```
 
-Viết:
-
-```text
-Khi user [trigger],
-AI/product [failure],
-hậu quả là [impact].
-Lỗi thuộc layer [promise / intent / data-tool / safety / UX recovery].
-Nên sửa bằng [requirement / UX / fallback / human role / test case].
-```
-
-Ví dụ:
-
-```text
-Khi user hỏi "chi tiêu linh tinh là gì?",
-AI hiểu như keyword thay vì nhận ra intent mơ hồ,
-hậu quả là user không biết sửa phân loại chi tiêu ở đâu.
-Lỗi thuộc Intent + UX Recovery.
-Nên sửa bằng low-confidence path: hỏi lại tiêu chí hoặc đưa 2-3 nhóm giao dịch để chọn.
-```
+---
 
 ## 5. Sketch as-is / to-be
 
-Vẽ 2 cột:
+**As-is — flow hiện tại (điểm gãy đánh dấu ⚠️)**
 
-- **As-is:** flow hiện tại, đánh dấu điểm gãy.
-- **To-be:** flow đề xuất, đánh dấu path đã sửa.
+```
+User nhập câu hỏi ngoài scope
+        │
+        ▼
+V-AI nhận input
+        │
+        ▼
+[Xử lý keyword — không check scope] ⚠️
+        │
+        ▼
+Trả về thông tin liên quan đến keyword
+(tiểu sử Phạm Nhật Vượng)
+        │
+        ▼
+User đọc — không có giá trị ⚠️
+        │
+        ▼
+Không có cơ chế feedback / correction ⚠️
+        │
+        ▼
+Conversation kết thúc — user tự rời
+```
 
-Không cần đẹp. Cần nhìn vào là hiểu:
+**To-be — flow đề xuất (path đã sửa ✅)**
 
-- user làm gì,
-- AI làm gì,
-- lúc AI không chắc thì sao,
-- lúc AI sai user recover thế nào.
+```
+User nhập câu hỏi ngoài scope
+        │
+        ▼
+V-AI nhận input
+        │
+        ▼
+[Check intent + scope] ✅
+        │
+   ┌────┴────────────────┐
+   │                     │
+In scope             Out of scope / ambiguous
+   │                     │
+   ▼                     ▼
+Trả lời bình thường  [Low-confidence path] ✅
+                         │
+              ┌──────────┴──────────┐
+              │                     │
+         Mơ hồ                 Rõ ngoài scope
+              │                     │
+              ▼                     ▼
+         Hỏi lại intent        Từ chối rõ ràng
+         + offer 2-3 options   + gợi ý chuyển hướng
+                                dịch vụ phù hợp
+```
+
+---
 
 ## 6. Tự kiểm trước khi nộp
 
-- [ ] Có ít nhất 1 screenshot hoặc observation cụ thể.
-- [ ] Có đủ 4 paths hoặc nói rõ path nào chưa có trong product.
-- [ ] Finding được viết thành product decision, không chỉ là nhận xét.
-- [ ] Sketch có as-is và to-be.
-- [ ] Có một câu nói rõ finding này sẽ đổi gì trong SPEC.
+- [x] Có ít nhất 1 screenshot hoặc observation cụ thể.  
+  → Input: `"Làm sao để giàu như bác Phạm Nhật Vượng?"` — AI trả về thông tin tiểu sử, không hỏi lại.
+- [x] Có đủ 4 paths hoặc nói rõ path nào chưa có trong product.  
+  → Happy path hoạt động. Low-confidence, Failure recovery, Correction đều **không có** trong V-AI hiện tại.
+- [x] Finding được viết thành product decision, không chỉ là nhận xét.  
+  → Đã viết theo format trigger → failure → impact → layer → cách sửa.
+- [x] Sketch có as-is và to-be.
+- [x] Có một câu nói rõ finding này sẽ đổi gì trong SPEC.  
+  → SPEC cần bắt buộc có **low-confidence path**: khi AI detect câu ngoài scope, phải hỏi lại intent hoặc từ chối rõ thay vì trả lời lạc đề với tone tự tin.
